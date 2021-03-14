@@ -9,7 +9,65 @@ Author: Gabriel Chiong
 Templates
 ---------
 
+1. Module - COMPARABLE
 
+   module type COMPARABLE = 
+     sig
+       type t
+       val compare : t -> t -> int 
+     end ;;
+  
+   module CInt : COMPARABLE with type t = int = 
+     struct 
+       type t = int 
+       let compare = Stdlib.compare 
+     end ;;
+
+2. Module - ArrayList
+
+   module type SORTED_ALIST = 
+     sig 
+       exception EmptyList
+       exception NotFound
+       type elt
+       type arraylist
+       val empty : arraylist
+       val add : elt -> arraylist -> arraylist
+       val remove : elt -> arraylist -> arraylist
+       val smallest : arraylist -> elt
+     end ;; 
+  
+   module MakeAList (Elt : COMPARABLE) : (SORTED_ALIST with type elt = Elt.t) =
+     struct
+       exception EmptyList
+       exception NotFound
+       
+       type elt = Elt.t
+       type arraylist = elt list
+       
+       let empty = []
+       let rec add e l = 
+         match l with 
+         | [] -> [e]
+         | hd :: tl -> 
+             let comp = Elt.compare e hd in 
+             if comp < 0 then e :: l
+             else hd :: add e tl
+       let rec remove e l = 
+         match l with 
+         | [] -> raise EmptyList
+         | hd :: tl -> 
+             let comp = Elt.compare e hd in 
+             if comp < 0 then raise NotFound
+             else if comp = 0 then tl
+             else hd :: remove e tl
+       let smallest l = 
+         match l with 
+         | [] -> raise EmptyList
+         | hd :: _ -> hd
+     end ;; 
+  
+   module IntAList = MakeAList (CInt) ;;
 
 ...............................................................................
 Question 1 - Description
