@@ -23,7 +23,7 @@ Templates
        let compare = Stdlib.compare 
      end ;;
 
-2. Module - ArrayList
+2. Module - ArrayList (using Functor)
 
    module type SORTED_ALIST = 
      sig 
@@ -68,6 +68,47 @@ Templates
      end ;; 
   
    module IntAList = MakeAList (CInt) ;;
+
+3. try ... with
+
+   let nth_opt lst index = 
+     try 
+       Some (nth lst index)
+     with 
+     | Failure _
+     | Invalid_argument _ -> None ;;
+
+4. Polymorphic dictionary module (from textbook - no functor example)
+
+  module type DICT =
+    sig
+      type ('k, 'v) dictionary
+
+      val empty : ('k, 'v) dictionary
+      val add : ('k, 'v) dictionary -> 'k -> 'v -> ('k, 'v) dictionary
+      val lookup : ('k, 'v) dictionary -> 'k -> 'v option
+    end ;;
+
+  module Dictionary : DICT =
+    struct
+      type ('k, 'v) dictionary = ('k * 'v) list
+
+      let empty = []
+      let rec add dict key value =
+        match dict with
+        | [] -> [(key, value)]
+        | (k', v') :: tl ->
+            if key = k' then failwith "key already exists"
+            else if key < k' then (key, value) :: dict
+            else (k', v') :: add tl key value
+      let rec lookup dict key =
+        match dict with
+        | [] -> None
+        | (k', v') :: tl ->
+            if k' = key then Some v'
+            else if key < k' then None
+            else lookup tl key
+    end ;;
 
 ...............................................................................
 Question 1 - Description
